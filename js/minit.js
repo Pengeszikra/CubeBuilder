@@ -332,34 +332,21 @@ class CameraSwiper extends ThreeSwiper
   {
     let box = this.forms( 1 )
     this.tie.scene.add( box )
-    let f = this.found()
+    let f = this.found() 
+    
     
     if( f.find )
     {
       let fi = f.intersects[0]
-      // let qua = new THREE.Quaternion()
-      //   qua.set( fi.face.normal )
-      //w    qua.multiplySelf( fi.object.getWorldQuaternion() )
-      let q = new THREE.Quaternion()
-          //q.setFromUnitVectors( fi.face.normal , new THREE.Vector3(0,1,0) )
-          //q = fi.object.getWorldQuaternion().clone().normalize()
-          
-          q = fi.object.getWorldQuaternion().clone().normalize()
-          // let m = new THREE.Matrix4()
-          // m.lookAt() .applyMatrix4( fi.face.normal.clone() )
-          //q.multiplyQuaternions( fi.object.getWorldQuaternion().clone().normalize(), )    
-      
-      
-      // cu.position = new THREE.Matrix4().getInverse( intersects[0].object.matrixWorld ).multiplyVector3( intersects[0].point.clone() ).addSelf( intersects[0].face.normal.clone().multiplyScalar(50) );
-      
-      // var direction = new Vector3( 0, 0, -1 ).applyQuaternion( mesh.quaternion );
-      //let direction = fi.face.normal.clone().applyQuaternion( fi.object.quaternion )
-          
-          
+
+      window.fi = fi
+      window.b = box
+
+      // http://stackoverflow.com/questions/32084029/animate-the-rotation-of-an-object-to-be-parallel-to-velocity-three-js      
+
+      box.lookAt( fi.face.normal.clone().multiplyScalar( 1000 ) )
+      box.quaternion.premultiply( fi.object.getWorldQuaternion() )
       box.position.copy( fi.point )
-      box.setRotationFromQuaternion( q )
-      //box.getWorldDirection( direction )
-      
       
     }
   }
@@ -379,7 +366,7 @@ class CameraSwiper extends ThreeSwiper
     {
       this.tie.scene.add( box )
       // https://threejs.org/docs/index.html#Reference/Math/Quaternion
-      // window.f = f      
+      
       let fi = f.intersects[0]
       fi.object.updateMatrixWorld()
       let faceNormal = fi.face.normal
@@ -405,6 +392,7 @@ window.onload = function()
   tie.testAsset() 
   let cub = tie.cube(1,1,0,colorRandom(),.4)
       cub.rotateY( 45/RAD )
+      cub.rotateZ( 30/RAD )
   tie.cube(0,2,0,colorRandom(),.4)  
   tie.cube(2,2,0,colorRandom(),.4)
   tie.cube(1,3,0,colorRandom(),.4)
