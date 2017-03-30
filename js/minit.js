@@ -338,13 +338,12 @@ class CameraSwiper extends ThreeSwiper
     if( f.find )
     {
       let fi = f.intersects[0]
-
       window.fi = fi
       window.b = box
 
       // http://stackoverflow.com/questions/32084029/animate-the-rotation-of-an-object-to-be-parallel-to-velocity-three-js      
 
-      box.lookAt( fi.face.normal.clone().multiplyScalar( 1000 ) )
+      box.lookAt( fi.face.normal.clone() )
       box.quaternion.premultiply( fi.object.getWorldQuaternion() )
       box.position.copy( fi.point )
       
@@ -364,9 +363,12 @@ class CameraSwiper extends ThreeSwiper
 
     if( f.find )
     {
-      this.tie.scene.add( box )
-      // https://threejs.org/docs/index.html#Reference/Math/Quaternion
+      // this.tie.scene.add( box )
+      let fi = f.intersects[0]
+      window.fi = fi
+      window.b = box
       
+      /*      
       let fi = f.intersects[0]
       fi.object.updateMatrixWorld()
       let faceNormal = fi.face.normal
@@ -374,8 +376,12 @@ class CameraSwiper extends ThreeSwiper
       fi.object.add( box )
       let localPoint = fi.point.clone().sub( fi.object.getWorldPosition() )
       box.position.copy( localPoint )
-      
-      
+      */
+      box.lookAt( fi.face.normal.clone() )
+      //box.quaternion.premultiply( fi.object.quaternion )
+      box.position.copy( fi.point.clone().add( fi.object.getWorldPosition() ) )
+      fi.object.add( box )
+
     }
   }  
 } 
