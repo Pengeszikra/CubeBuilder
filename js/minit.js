@@ -14,8 +14,7 @@ const ACTION_DOWN = "mousedown"
 const ACTION_MOVE = "mousemove"
 const ACTION_UP = "mouseup"
 
-
-function TIE( window, document ) // Three Interactive Engine
+function CubeBuilder( window, document ) // Three Interactive Engine
 {  
 
 const RAD = 180/Math.PI
@@ -63,13 +62,14 @@ var renderer, scene, camera, width, height
       scene.add( this.ambient )
 
       document.body.appendChild( renderer.domElement )
-      renderer.domElement.oncontextmenu = e => e.preventDefault()
+      renderer.domElement.oncontextmenu = e => e.preventDefault()     
+      
       window.addEventListener('resize',this.resize.bind(this),false)
 
       scene.add( camera )
       this.animate()      
     }
-
+           
     animate()
     {      
       requestAnimationFrame( this.animate.bind( this ) )
@@ -109,7 +109,7 @@ var renderer, scene, camera, width, height
           geom.translate( 0 , 0 , d/2 )
       let shading = THREE.FlatShading
       // let wireframe = true      
-      opacity = Math.random() >.9 ? .5 : 1
+      // opacity = Math.random() >.9 ? .5 : 1
       let transparent = opacity < 1
       let mat = new THREE.MeshPhongMaterial( {color, shading, opacity , transparent } )
       return new THREE.Mesh( geom, mat )
@@ -125,14 +125,20 @@ var renderer, scene, camera, width, height
       return new THREE.Mesh( geom, mat )
     }      
 
-    cube( x=0 , y=0 , z=0, color=0x337788 )
+    cube( x=0 , y=0 , z=0, color=0x337788, opacity = 1 )
     {
-      let cube = this.boxFactory( SIZE, SIZE, SIZE , color )
+      let cube = this.boxFactory( SIZE, SIZE, SIZE , color, opacity )
       let DIST = SIZE * 1.1
       cube.translateX( DIST*x ).translateY( DIST*y ).translateZ( DIST*z )      
       scene.add( cube )
       return cube
     }    
+    
+    remove( obj )
+    {
+      obj.parent.remove( obj )
+    }
+    
   }
   
   class Editor{}
@@ -286,7 +292,6 @@ class CameraSwiper extends ThreeSwiper
     }
   } 
 
-
   moveStop()
   {
     super.moveStop()
@@ -307,79 +312,110 @@ class CameraSwiper extends ThreeSwiper
   // https://threejs.org/examples/#webgl_raycast_texture
   // https://threejs.org/examples/?q=ray#webgl_geometry_terrain_raycast
   
-  placeObject()
+  deleteObject()
   {
-    let box = Math.random()>.5 ?
-      this.tie.cube(0,0,0, colorRandom() )
-      :
-      this.tie.cylinderFactory( SIZE/5, SIZE,  colorLightGray() ); this.tie.scene.add( box )
-    window.lbox = box //TODO:remove 
     let f = this.found()
-
-    if(!f.find)
+    if( f.find )
     {
-      box.position.addVectors( this.tie.camera.position , new THREE.Vector3( 0 , 0 , 0  ) )
-      box.translateZ( -200 )      
-    }
-    else
-    {      
-      // https://threejs.org/docs/index.html#Reference/Math/Quaternion
-      window.f = f      
-      let fi = f.intersects[0]
-      fi.object.updateMatrixWorld()
-      let faceNormal = fi.face.normal
-      let clacedNormal = fi.face.normal.clone().applyQuaternion( fi.object.getWorldQuaternion() )
-
-        box.lookAt( faceNormal )
-        fi.object.add( box )
-        let localPoint = fi.point.clone().sub( fi.object.getWorldPosition() )
-        // talan meg el is kell forgatnom ??
-        box.position.copy( localPoint )
-      return
-
-      box.lookAt( clacedNormal ) // KIHAL -- majdnem jo
-      box.position.copy( fi.point )
+      this.tie.remove( f.find )
     }
   }
   
+  forms( whichOne , opacity )
+  {
+    return ( Math.random() > whichOne )
+            ? this.tie.cube(0,0,0, ( opacity==1 ) ? colorLightGray() : colorRandom() , opacity ) 
+            : this.tie.cylinderFactory( SIZE/5, SIZE,  colorLightGray() , opacity ); 
+  }
   
+  placeIntoSpace(  )
+  {
+    let box = this.forms( 1 )
+    this.tie.scene.add( box )
+    let f = this.found()
+    
+    if( f.find )
+    {
+      let fi = f.intersects[0]
+      // let qua = new THREE.Quaternion()
+      //   qua.set( fi.face.normal )
+      //w    qua.multiplySelf( fi.object.getWorldQuaternion() )
+      let q = new THREE.Quaternion()
+          //q.setFromUnitVectors( fi.face.normal , new THREE.Vector3(0,1,0) )
+          //q = fi.object.getWorldQuaternion().clone().normalize()
+          
+          q = fi.object.getWorldQuaternion().clone().normalize()
+          // let m = new THREE.Matrix4()
+          // m.lookAt() .applyMatrix4( fi.face.normal.clone() )
+          //q.multiplyQuaternions( fi.object.getWorldQuaternion().clone().normalize(), )    
+      
+      
+      // cu.position = new THREE.Matrix4().getInverse( intersects[0].object.matrixWorld ).multiplyVector3( intersects[0].point.clone() ).addSelf( intersects[0].face.normal.clone().multiplyScalar(50) );
+      
+      // var direction = new Vector3( 0, 0, -1 ).applyQuaternion( mesh.quaternion );
+      //let direction = fi.face.normal.clone().applyQuaternion( fi.object.quaternion )
+          
+          
+      box.position.copy( fi.point )
+      box.setRotationFromQuaternion( q )
+      //box.getWorldDirection( direction )
+      
+      
+    }
+  }
+  
+  placeObject( boxOrClone = .5 , opacity = 1 )
+  {
+    let box = this.forms( boxOrClone , opacity )
+    
+    // window.lbox = box //TODO:remove 
+    let f = this.found()
+      
+      // to front of camera
+      //box.position.addVectors( this.tie.camera.position , new THREE.Vector3( 0 , 0 , 0  ) )
+      // box.translateZ( -200 )      
+
+    if( f.find )
+    {
+      this.tie.scene.add( box )
+      // https://threejs.org/docs/index.html#Reference/Math/Quaternion
+      // window.f = f      
+      let fi = f.intersects[0]
+      fi.object.updateMatrixWorld()
+      let faceNormal = fi.face.normal
+      box.lookAt( faceNormal )
+      fi.object.add( box )
+      let localPoint = fi.point.clone().sub( fi.object.getWorldPosition() )
+      box.position.copy( localPoint )
+      
+      
+    }
+  }  
 } 
 
 window.onload = function()
 {
-  let tie = new TIE( window, document )
+  let tie = new CubeBuilder( window, document )
+  // let tie = CubeBuilder( window, document )
   window.tie = tie
   
-  window.interaction = new CameraSwiper( tie )
-  
-  
-  tie.testAsset()
- 
-  let cub = tie.cube(1,1)
+  let action
+  window.action = action = new CameraSwiper( tie )
+    
+  tie.testAsset() 
+  let cub = tie.cube(1,1,0,colorRandom(),.4)
       cub.rotateY( 45/RAD )
-  tie.cube(1,2)  
-  tie.cube(2,2)
-  tie.cube(1,3)
+  tie.cube(0,2,0,colorRandom(),.4)  
+  tie.cube(2,2,0,colorRandom(),.4)
+  tie.cube(1,3,0,colorRandom(),.4)
   
-  /*
-  tie.cube(3,1)
-  tie.cube(3,2)  
-  tie.cube(3,3)
+  Mousetrap.bind('a',()=>action.placeObject( 0 ) )
+  Mousetrap.bind('r',()=>action.placeObject( 0 , 0.3 ) )
+  Mousetrap.bind('s',()=>action.placeObject( 1 ) )
+  Mousetrap.bind('w',()=>action.placeIntoSpace() )
+  Mousetrap.bind(['d','del'],()=>action.deleteObject() )
   
-  tie.cube(-1,1)
-  tie.cube(-1,2)  
-  tie.cube(-2,2,0,0xAAAA77)
-  tie.cube(-1,3)
-  tie.cube(-1,-1,0,0xAAAA77)  
-  
-  
-  let big = tie.boxFactory( 800, 800, 2 ,  0x888855 )
-      tie.scene.add( big )
-      big.translateZ( -900 ) 
-      big.rotateY( 75/RAD )
-   */
-  
-  // https://github.com/mrdoob/three.js/issues/1486  
+    // https://github.com/mrdoob/three.js/issues/1486  
   // http://stackoverflow.com/questions/17443056/threejs-keep-object-on-surface-of-another-object
   // http://stackoverflow.com/questions/16268482/three-js-convert-face-normal-from-local-space-to-world-space
 
@@ -388,18 +424,31 @@ window.onload = function()
   // JSON.stringify( o.toJSON(), null , 2 )
   
   /* TODO 
+    
+    - fix position even by rotated obejct
   
     - move and rotation by global position
     - color selection
     - scale object
     - detach object
     - select shape
+    - clone
+    - draw with tons of object
     
     - modular interface for editor 
-    - short keys
+    
+    + short keys
     - save/load 
     
+    - join animation
     
+    - make complex figure
+    - figure library
+    - array of creation
+    
+    https://code.blender.org/2017/03/eevee-roadmap/!!!
+    
+    Blender 2.8 PBR KIHAL
   
   */
 
