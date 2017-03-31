@@ -138,6 +138,11 @@ var renderer, scene, camera, width, height
     {
       obj.parent.remove( obj )
     }
+
+    attach( child, parent )
+    {
+      THREE.SceneUtils.attach( child , scene, parent )
+    }
     
   }
   
@@ -324,19 +329,18 @@ class CameraSwiper extends ThreeSwiper
   forms( whichOne , opacity )
   {
     return ( Math.random() > whichOne )
-            ? this.tie.cube(0,0,0, ( opacity==1 ) ? colorLightGray() : colorRandom() , opacity ) 
-            : this.tie.cylinderFactory( SIZE/5, SIZE,  colorLightGray() , opacity ); 
+      ? this.tie.cube(0,0,0, ( opacity==1 ) ? colorLightGray() : colorRandom() , opacity ) 
+      : this.tie.cylinderFactory( SIZE/5, SIZE,  colorLightGray() , opacity ); 
   }
   
   placeIntoSpace(  )
   {
-    let box = this.forms( 1 )
-    this.tie.scene.add( box )
+    let box = this.forms( 1 )    
     let f = this.found() 
-    
     
     if( f.find )
     {
+      
       let fi = f.intersects[0]
       window.fi = fi
       window.b = box
@@ -346,15 +350,13 @@ class CameraSwiper extends ThreeSwiper
       box.lookAt( fi.face.normal.clone() )
       box.quaternion.premultiply( fi.object.getWorldQuaternion() )
       box.position.copy( fi.point )
-      
+      this.tie.scene.add( box )      
     }
   }
   
   placeObject( boxOrClone = .5 , opacity = 1 )
   {
     let box = this.forms( boxOrClone , opacity )
-    
-    // window.lbox = box //TODO:remove 
     let f = this.found()
       
       // to front of camera
@@ -363,25 +365,20 @@ class CameraSwiper extends ThreeSwiper
 
     if( f.find )
     {
-      // this.tie.scene.add( box )
+      this.tie.scene.add( box )
       let fi = f.intersects[0]
       window.fi = fi
       window.b = box
-      
-      /*      
-      let fi = f.intersects[0]
-      fi.object.updateMatrixWorld()
-      let faceNormal = fi.face.normal
-      box.lookAt( faceNormal )
-      fi.object.add( box )
-      let localPoint = fi.point.clone().sub( fi.object.getWorldPosition() )
-      box.position.copy( localPoint )
-      */
-      box.lookAt( fi.face.normal.clone() )
-      //box.quaternion.premultiply( fi.object.quaternion )
-      box.position.copy( fi.point.clone().add( fi.object.getWorldPosition() ) )
-      fi.object.add( box )
 
+      // box.lookAt( fi.face.normal.clone() )
+      // fi.object.add( box )
+      // http://stackoverflow.com/questions/24441223/changing-the-world-position-of-a-child-object-in-three-js
+
+      box.lookAt( fi.face.normal.clone() )
+      box.quaternion.premultiply( fi.object.getWorldQuaternion() )
+      box.position.copy( fi.point )
+      box.updateMatrix() // KIHAL
+      tie.attach( box, fi.object )
     }
   }  
 } 
@@ -408,14 +405,6 @@ window.onload = function()
   Mousetrap.bind('s',()=>action.placeObject( 1 ) )
   Mousetrap.bind('w',()=>action.placeIntoSpace() )
   Mousetrap.bind(['d','del'],()=>action.deleteObject() )
-  
-    // https://github.com/mrdoob/three.js/issues/1486  
-  // http://stackoverflow.com/questions/17443056/threejs-keep-object-on-surface-of-another-object
-  // http://stackoverflow.com/questions/16268482/three-js-convert-face-normal-from-local-space-to-world-space
-
-  // JSON pretty print
-  // JSON.stringify( o.toJSON(), null , "  " )
-  // JSON.stringify( o.toJSON(), null , 2 )
   
   /* TODO 
     
