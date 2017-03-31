@@ -259,7 +259,11 @@ class CameraSwiper extends ThreeSwiper
 
       if( this.focus )
       {
-        if ( this.isFocusRotating )
+        if( this.isAltOnStart )
+        {
+          this.focus.scale.setScalar( this.focus.scale.x + distX * -.1 )
+        }
+        else if ( this.isFocusRotating )
         {
           this.focus.rotateY( distX  * -.02 )
           this.focus.rotateX( distY  * +.02 ) // two direction rotate
@@ -300,7 +304,7 @@ class CameraSwiper extends ThreeSwiper
   moveStop()
   {
     super.moveStop()
-    if( this.isAltOnStart && this.distance < 0.01 ) this.placeObject()
+    // if( this.isAltOnStart && this.distance < 0.01 ) this.placeObject()
   }
 
   found()
@@ -408,20 +412,28 @@ window.onload = function()
   
   /* TODO 
     
-    - fix position even by rotated obejct
+    + fix position even by rotated obejct
+    + delete object 
+    + draw with tons of object
+    + scale object
   
     - move and rotation by global position
     - color selection
-    - scale object
+    
     - detach object
     - select shape
-    - clone
-    - draw with tons of object
-    
-    - modular interface for editor 
-    
+    - clone    
+    - modular interface for editor     
     + short keys
     - save/load 
+      
+      copy( fi.object.toJSON() )
+      new THREE.ObjectLoader().load('shapes/robotKekkelKezeben.json', model => tie.scene.add( model ))
+
+    - move camera to target
+    - see everything
+
+    - camera rotate up and down
     
     - join animation
     
