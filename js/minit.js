@@ -256,6 +256,7 @@ class CameraSwiper extends ThreeSwiper
     {
       let distX = (this.origo.x - this.final.x)
       let distY = (this.origo.y - this.final.y)
+      let camDir = this.tie.camera.getWorldDirection().clone()
 
       if( this.focus )
       {
@@ -270,12 +271,17 @@ class CameraSwiper extends ThreeSwiper
         } 
         else if( this.isFocusZooming )
         {
-          this.focus.translateZ( distY  * 25 ) 
+          // this.focus.translateZ( distY  * 25 ) 
+          this.focus.position.add( camDir.multiplyScalar( distY * -15 ) )
         } 
         else 
         { 
-          this.focus.translateX( distX  * - 15 )
-          this.focus.translateY( distY  * - 15 )
+          let horizontal = camDir.clone().applyAxisAngle( new THREE.Vector3(0,1,0), 90/RAD )
+          let vertical = camDir.clone().applyAxisAngle( new THREE.Vector3(1,0,0), 90/RAD )
+          this.focus.position.add( horizontal.multiplyScalar( distX * 10 )  )
+          this.focus.position.add( vertical.multiplyScalar( distY * -10 )  )
+          // this.focus.translateX( distX  * - 15 )
+          // this.focus.translateY( distY  * - 15 )
         }
         this.focus.updateMatrixWorld()
       } 
