@@ -311,11 +311,10 @@ class CameraSwiper extends ThreeSwiper
   {
     let ray = new THREE.Raycaster()
         ray.setFromCamera( this.mouse, this.tie.camera )
-        // log = ray        
     var intersects = ray.intersectObjects( this.tie.scene.children , true )    
-    window.sect = intersects //TODO:remove 
+    
     let find = intersects.length ? intersects[0].object : null
-    return {find,intersects}
+    return {find,intersects} //TODO: refact
   }
   
   // https://threejs.org/examples/#webgl_raycast_texture
@@ -335,6 +334,30 @@ class CameraSwiper extends ThreeSwiper
     return ( Math.random() > whichOne )
       ? this.tie.cube(0,0,0, ( opacity==1 ) ? colorLightGray() : colorRandom() , opacity ) 
       : this.tie.cylinderFactory( SIZE/5, SIZE,  colorLightGray() , opacity ); 
+  }
+
+  pasteClone()
+  {
+    let f = this.found()
+    if( f.find && this.actualClone )
+    {
+      let fi = f.intersects[0]
+      this.actualClone.lookAt( fi.face.normal.clone() )
+      this.actualClone.quaternion.premultiply( fi.object.getWorldQuaternion() )
+      this.actualClone.position.copy( fi.point )
+      this.tie.scene.add( this.actualClone )
+      log = "paste clone"
+    }
+  }
+
+  copyClone()
+  {
+    let f = this.found()
+    if( f.find )
+    {
+      this.actualClone = f.find.clone()
+      log = "copy clone"
+    }
   }
   
   placeIntoSpace(  )
@@ -404,11 +427,14 @@ window.onload = function()
   tie.cube(2,2,0,colorRandom(),.4)
   tie.cube(1,3,0,colorRandom(),.4)
   
-  Mousetrap.bind('a',()=>action.placeObject( 0 ) )
-  Mousetrap.bind('r',()=>action.placeObject( 0 , 0.3 ) )
-  Mousetrap.bind('s',()=>action.placeObject( 1 ) )
-  Mousetrap.bind('w',()=>action.placeIntoSpace() )
-  Mousetrap.bind(['d','del'],()=>action.deleteObject() )
+  Mousetrap.bind( 'a', ()=>action.placeObject( 0 ) )
+  Mousetrap.bind( 'r', ()=>action.placeObject( 0 , 0.3 ) )
+  Mousetrap.bind( 's', ()=>action.placeObject( 1 ) )
+  Mousetrap.bind( 'w', ()=>action.placeIntoSpace() )
+  Mousetrap.bind(['d','del'], ()=>action.deleteObject() )
+  Mousetrap.bind( 'g', ()=>action.copyClone() )
+  Mousetrap.bind( 'h', ()=>action.pasteClone() )
+  Mousetrap.bind( 'u', ()=>new THREE.ObjectLoader().load('shapes/robotKekkelKezeben.json', model => tie.scene.add( model )) )
   
   /* TODO 
     
