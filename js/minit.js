@@ -272,14 +272,14 @@ class CameraSwiper extends ThreeSwiper
         else if( this.isFocusZooming )
         {
           // this.focus.translateZ( distY  * 25 ) 
+          // if( this.focus.parent == this.tie.scene )
           this.focus.position.add( camDir.multiplyScalar( distY * -15 ) )
         } 
         else 
         { 
           let horizontal = camDir.clone().applyAxisAngle( new THREE.Vector3(0,1,0), 90/RAD )
-          let vertical = camDir.clone().applyAxisAngle( new THREE.Vector3(1,0,0), 90/RAD )
           this.focus.position.add( horizontal.multiplyScalar( distX * 10 )  )
-          this.focus.position.add( vertical.multiplyScalar( distY * -10 )  )
+          this.focus.position.addScaledVector( this.tie.camera.up  , distY * -10 )
           // this.focus.translateX( distX  * - 15 )
           // this.focus.translateY( distY  * - 15 )
         }
@@ -352,7 +352,7 @@ class CameraSwiper extends ThreeSwiper
       this.actualClone.quaternion.premultiply( fi.object.getWorldQuaternion() )
       this.actualClone.position.copy( fi.point )
       this.tie.scene.add( this.actualClone )
-      log = "paste clone"
+      // log = "paste clone"
     }
   }
 
@@ -362,7 +362,7 @@ class CameraSwiper extends ThreeSwiper
     if( f.find )
     {
       this.actualClone = f.find.clone()
-      log = "copy clone"
+      // log = "copy clone"
     }
   }
   
@@ -402,11 +402,9 @@ class CameraSwiper extends ThreeSwiper
       let fi = f.intersects[0]
       window.fi = fi
       window.b = box
-
       // box.lookAt( fi.face.normal.clone() )
       // fi.object.add( box )
       // http://stackoverflow.com/questions/24441223/changing-the-world-position-of-a-child-object-in-three-js
-
       box.lookAt( fi.face.normal.clone() )
       box.quaternion.premultiply( fi.object.getWorldQuaternion() )
       box.position.copy( fi.point )
@@ -414,6 +412,33 @@ class CameraSwiper extends ThreeSwiper
       tie.attach( box, fi.object )
     }
   }  
+
+  shoot()
+  {
+    log = 'shoot'
+    let SPEED = 150
+    let dir = this.tie.camera.getWorldDirection()
+    let bulet = this.tie.cylinderFactory( SIZE/5, SIZE,  colorLightGray() )
+        bulet.position.copy( this.tie.camera.position )
+        bulet.lookAt( this.tie.camera.position.clone().add( dir ) )
+        bulet.position.addScaledVector( dir.clone() , SPEED )
+
+
+    this.tie.scene.add( bulet )
+
+    bulet.onBeforeRender = () => 
+    { 
+      
+      bulet.position.addScaledVector( dir.clone(), SPEED/ 20 )
+
+      if( bulet.children.length < 1 && Math.random() > 0.999 ){ bulet.parent.remove( bulet ) }
+      //requestAnimationFrame( this.animation ).bind( bulet )
+    }
+
+    // bulet.onBeforeRender().bind(bulet)
+
+  }
+
 } 
 
 window.onload = function()
@@ -429,18 +454,20 @@ window.onload = function()
   let cub = tie.cube(1,1,0,colorRandom(),.4)
       cub.rotateY( 45/RAD )
       cub.rotateZ( 30/RAD )
-  tie.cube(0,2,0,colorRandom(),.4)  
-  tie.cube(2,2,0,colorRandom(),.4)
+  //tie.cube(0,2,0,colorRandom(),.4)  
+  //tie.cube(2,2,0,colorRandom(),.4)
   tie.cube(1,3,0,colorRandom(),.4)
+
   
-  Mousetrap.bind( 'a', ()=>action.placeObject( 0 ) )
-  Mousetrap.bind( 'r', ()=>action.placeObject( 0 , 0.3 ) )
-  Mousetrap.bind( 's', ()=>action.placeObject( 1 ) )
-  Mousetrap.bind( 'w', ()=>action.placeIntoSpace() )
-  Mousetrap.bind(['d','del'], ()=>action.deleteObject() )
-  Mousetrap.bind( 'g', ()=>action.copyClone() )
-  Mousetrap.bind( 'h', ()=>action.pasteClone() )
-  Mousetrap.bind( 'u', ()=>new THREE.ObjectLoader().load('shapes/robotKekkelKezeben.json', model => tie.scene.add( model )) )
+  Mousetrap.bind( 'a', ()=> action.placeObject( 0 ) )
+  Mousetrap.bind( 'r', ()=> action.placeObject( 0 , 0.3 ) )
+  Mousetrap.bind( 's', ()=> action.placeObject( 1 ) )
+  Mousetrap.bind( 'w', ()=> action.placeIntoSpace() )
+  Mousetrap.bind(['d','del'], ()=> action.deleteObject() )
+  Mousetrap.bind( 'g', ()=> action.copyClone() )
+  Mousetrap.bind( 'h', ()=> action.pasteClone() )
+  Mousetrap.bind( 'u', ()=> new THREE.ObjectLoader().load('shapes/robotKekkelKezeben.json', model => tie.scene.add( model )) )
+  Mousetrap.bind( 'space', ()=> action.shoot() )
   
   /* TODO 
     
@@ -448,13 +475,14 @@ window.onload = function()
     + delete object 
     + draw with tons of object
     + scale object
+    + clone    
+    + move by global position
   
     - move and rotation by global position
     - color selection
     
     - detach object
     - select shape
-    - clone    
     - modular interface for editor     
     + short keys
     - save/load 
