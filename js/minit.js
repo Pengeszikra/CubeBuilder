@@ -431,7 +431,15 @@ class CameraSwiper extends ThreeSwiper
       
       bulet.position.addScaledVector( dir.clone(), SPEED/ 20 )
 
-      if( bulet.children.length < 1 && Math.random() > 0.999 ){ bulet.parent.remove( bulet ) }
+      if( Math.random() > 0.999 )
+      {
+
+      }
+
+      if( bulet.children.length < 1 && Math.random() > 0.999 )
+      { 
+        bulet.parent.remove( bulet ) 
+      }
       //requestAnimationFrame( this.animation ).bind( bulet )
     }
 
@@ -450,7 +458,7 @@ window.onload = function()
   let action
   window.action = action = new CameraSwiper( tie )
     
-  tie.testAsset() 
+  //tie.testAsset() 
   let cub = tie.cube(1,1,0,colorRandom(),.4)
       cub.rotateY( 45/RAD )
       cub.rotateZ( 30/RAD )
@@ -463,11 +471,12 @@ window.onload = function()
   Mousetrap.bind( 'r', ()=> action.placeObject( 0 , 0.3 ) )
   Mousetrap.bind( 's', ()=> action.placeObject( 1 ) )
   Mousetrap.bind( 'w', ()=> action.placeIntoSpace() )
-  Mousetrap.bind(['d','del'], ()=> action.deleteObject() )
+  Mousetrap.bind( 'del', ()=> action.deleteObject() )
   Mousetrap.bind( 'g', ()=> action.copyClone() )
   Mousetrap.bind( 'h', ()=> action.pasteClone() )
   Mousetrap.bind( 'u', ()=> new THREE.ObjectLoader().load('shapes/robotKekkelKezeben.json', model => tie.scene.add( model )) )
   Mousetrap.bind( 'space', ()=> action.shoot() )
+  Mousetrap.bind( 'k', ()=> tie.camera.position.set( 0,0,500 ))
   
   /* TODO 
     
@@ -491,6 +500,9 @@ window.onload = function()
       new THREE.ObjectLoader().load('shapes/robotKekkelKezeben.json', model => tie.scene.add( model ))
 
     - move camera to target
+
+    - move objetct on parent surface
+    - reset camera    
     - see everything
 
     - camera rotate up and down
@@ -504,8 +516,126 @@ window.onload = function()
     https://code.blender.org/2017/03/eevee-roadmap/!!!
     
     Blender 2.8 PBR KIHAL
+
+    Refact:
   
+      current:
+
+        CubeBuilder // application 
+        CameraSwiper // Interaction
+        Mousetrap // shortkeys
+
+      next:
+
+        CubeBuilder // app
+
+        let config = 
+        {
+          CubeBuilder: 
+          {
+            window,
+            document,
+            interact: CameraSwiper,
+            three: THREE,                    
+            IFooModule: FooModule,
+          }
+        }
+  
+        window.tie = new CubeBuilder( config.CubeBuilder )
+
+        // class with protected parts
+        CubeBuilderFactory = function( inject )
+        {
+          var inject = inject
+
+          var scene = inject.scene
+          var camera = inject.camera
+
+          return new class CubeBuilderApp
+          {
+            constructor()
+            {
+              this.something = inject.ISomething
+            }
+          }
+
+          class FooCommand() extends BasicCommand
+          {
+            execute()
+            {
+              let module = inject.IFooModule
+              module.fooFunction()
+            }
+          }
+
+          class EndDrag() extends BasicCommand
+          {
+            execute()
+            {
+              let module = inject.IFooModule
+                  module.endDrag()
+            }
+          }
+
+
+        }
+
+        // simple class factory         
+        factory = ( className ) => new this[ className ]( config[ className ] )
+
+
   */
+
+let factory = ( className ) => new this[ className+'Module' ]( config[ className ] )    
+
+let config = 
+{
+  CubeBuilder: 
+  {
+    window,
+    document,
+    interact: CameraSwiper,
+    three: THREE,                    
+    IFooModule: FooModule,
+  }
+}
+
+window.tie = factory( 'CubeBuilder' )
+  
+// class with protected parts
+CubeBuilderModule = function( inject )
+{
+  var inject = inject
+
+  var scene = inject.scene
+  var camera = inject.camera
+
+  return new class CubeBuilderApp
+  {
+    constructor()
+    {
+      this.something = inject.ISomething
+    }
+  }
+
+  class FooCommand() extends BasicCommand
+  {
+    execute()
+    {
+      let module = inject.IFooModule
+      module.fooFunction()
+    }
+  }
+
+  class EndDrag() extends BasicCommand
+  {
+    execute()
+    {
+      let module = inject.IFooModule
+          module.endDrag()
+    }
+  }
+}
 
   
 }
