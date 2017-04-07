@@ -468,6 +468,7 @@ window.onload = function()
   Mousetrap.bind( 'h', ()=> action.pasteClone() )
   Mousetrap.bind( 'u', ()=> new THREE.ObjectLoader().load('shapes/robotKekkelKezeben.json', model => tie.scene.add( model )) )
   Mousetrap.bind( 'space', ()=> action.shoot() )
+  Mousetrap.bind( 'o', ()=>{ tie.scene.children.forEach( e => e.position.set(0,0,0) ); tie.camera.position.set(1000,200,1000); tie.camera.lookAt( new THREE.Vector3(0,0,0) ) })
   
   /* TODO 
     
