@@ -416,7 +416,7 @@ class CameraSwiper extends ThreeSwiper
   shoot()
   {
     log = 'shoot'
-    let SPEED = 150
+    let SPEED = 200 * Math.random()
     let dir = this.tie.camera.getWorldDirection()
     let bulet = this.tie.cylinderFactory( SIZE/5, SIZE,  colorLightGray() )
         bulet.position.copy( this.tie.camera.position )
@@ -429,7 +429,7 @@ class CameraSwiper extends ThreeSwiper
     bulet.onBeforeRender = () => 
     { 
       
-      bulet.position.addScaledVector( dir.clone(), SPEED/ 20 )
+      bulet.position.addScaledVector( dir.clone(), SPEED/ 5 )
 
       if( bulet.children.length < 1 && Math.random() > 0.999 ){ bulet.parent.remove( bulet ) }
       //requestAnimationFrame( this.animation ).bind( bulet )
