@@ -416,7 +416,7 @@ class CameraSwiper extends ThreeSwiper
   shoot()
   {
     log = 'shoot'
-    let SPEED = 150
+    let SPEED = 200 * Math.random()
     let dir = this.tie.camera.getWorldDirection()
     let bulet = this.tie.cylinderFactory( SIZE/5, SIZE,  colorLightGray() )
         bulet.position.copy( this.tie.camera.position )
@@ -429,16 +429,19 @@ class CameraSwiper extends ThreeSwiper
     bulet.onBeforeRender = () => 
     { 
       
-      bulet.position.addScaledVector( dir.clone(), SPEED/ 20 )
+      // bulet.position.addScaledVector( dir.clone(), SPEED/ 5 )
+      bulet.translateZ( SPEED/5 )
 
-      if( Math.random() > 0.999 )
+      if( Math.random() > 0.7 )
       {
-
+        //bulet.rotateZ(5/RAD)
+        //bulet.rotateX(5/RAD)
+        bulet.rotateX(1/RAD)
       }
 
       if( bulet.children.length < 1 && Math.random() > 0.999 )
       { 
-        bulet.parent.remove( bulet ) 
+        // bulet.parent.remove( bulet ) 
       }
       //requestAnimationFrame( this.animation ).bind( bulet )
     }
@@ -477,6 +480,8 @@ window.onload = function()
   Mousetrap.bind( 'u', ()=> new THREE.ObjectLoader().load('shapes/robotKekkelKezeben.json', model => tie.scene.add( model )) )
   Mousetrap.bind( 'space', ()=> action.shoot() )
   Mousetrap.bind( 'k', ()=> tie.camera.position.set( 0,0,500 ))
+  Mousetrap.bind( 'o', ()=>{ tie.scene.children.forEach( e => e.position.set(0,0,0) ); tie.camera.position.set(1000,200,1000); tie.camera.lookAt( new THREE.Vector3(0,0,0) ) })
+
   
   /* TODO 
     
@@ -487,6 +492,7 @@ window.onload = function()
     + clone    
     + move by global position
   
+    - rollUp/Down by wheel
     - move and rotation by global position
     - color selection
     
@@ -585,58 +591,6 @@ window.onload = function()
 
 
   */
-
-let factory = ( className ) => new this[ className+'Module' ]( config[ className ] )    
-
-let config = 
-{
-  CubeBuilder: 
-  {
-    window,
-    document,
-    interact: CameraSwiper,
-    three: THREE,                    
-    IFooModule: FooModule,
-  }
-}
-
-window.tie = factory( 'CubeBuilder' )
-  
-// class with protected parts
-CubeBuilderModule = function( inject )
-{
-  var inject = inject
-
-  var scene = inject.scene
-  var camera = inject.camera
-
-  return new class CubeBuilderApp
-  {
-    constructor()
-    {
-      this.something = inject.ISomething
-    }
-  }
-
-  class FooCommand() extends BasicCommand
-  {
-    execute()
-    {
-      let module = inject.IFooModule
-      module.fooFunction()
-    }
-  }
-
-  class EndDrag() extends BasicCommand
-  {
-    execute()
-    {
-      let module = inject.IFooModule
-          module.endDrag()
-    }
-  }
-}
-
   
 }
 
