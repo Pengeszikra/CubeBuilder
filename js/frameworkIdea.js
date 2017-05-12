@@ -89,6 +89,26 @@ function GooFoo( inject )
   }
 }
 
+/*
+ ezzel csak az a baj, hogy nem Abstrakt classokat adok át
+
+ Illteve, hogy a DI igazából csak a SOLID D betűje. 
+ És nem visz közelebb a könnyen kezelhető, lehetőleg event nélküli programozáshoz
+
+*/
+
+function Go2( inject )
+{
+  var { foo, goo } = inject
+
+  return new class GooFoo
+  {
+    constructor(){ this.sum = this.sim }
+
+    get sim(){ return foo + goo() }
+  }
+}
+
 
 
 // window.tie = new CubeBuilder( config.CubeBuilder )
